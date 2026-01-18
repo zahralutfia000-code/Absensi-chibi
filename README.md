@@ -1,2 +1,247 @@
-# Absensi-chibi
-H
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Absensi Chibi Imut</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:'Segoe UI',sans-serif;
+ background:linear-gradient(135deg,#A183B7,#A1B6C5,#FFEFF2);
+}
+.slide{
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:30px;
+}
+.card{
+ width:820px;
+ background:#fff;
+ padding:55px;
+ border-radius:45px;
+ text-align:center;
+ box-shadow:0 30px 70px rgba(0,0,0,.25);
+}
+
+/* CHIBI (TIDAK BERJALAN) */
+.chibi{
+ font-size:85px;
+}
+.jump{
+ animation:jump 1.4s infinite;
+}
+.wave{
+ animation:wave 1.3s infinite;
+}
+@keyframes jump{
+ 0%,100%{transform:translateY(0)}
+ 50%{transform:translateY(-22px)}
+}
+@keyframes wave{
+ 0%{transform:rotate(0)}
+ 25%{transform:rotate(-10deg)}
+ 50%{transform:rotate(10deg)}
+ 75%{transform:rotate(-10deg)}
+ 100%{transform:rotate(0)}
+}
+
+input,select,button{
+ width:100%;
+ padding:16px;
+ margin:12px 0;
+ border-radius:18px;
+ font-size:17px;
+ border:1px solid #ccc;
+}
+button{
+ background:#A183B7;
+ color:white;
+ border:none;
+ font-size:19px;
+ cursor:pointer;
+}
+button:hover{opacity:.9}
+
+table{
+ width:100%;
+ border-collapse:collapse;
+ border-radius:18px;
+ overflow:hidden;
+ margin-top:15px;
+}
+th,td{
+ border:1px solid #ddd;
+ padding:12px;
+}
+th{
+ background:#A183B7;
+ color:white;
+}
+
+.rekap{
+ display:flex;
+ justify-content:space-around;
+ margin:20px 0;
+ font-size:18px;
+}
+.box{
+ background:#f3eef8;
+ padding:15px 20px;
+ border-radius:18px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SLIDE ABSENSI -->
+<section class="slide">
+<div class="card">
+ <div class="chibi jump">🐰💖</div>
+ <h1>Absensi Siswa</h1>
+
+ <input id="nama" placeholder="Nama Siswa">
+
+ <select id="angkatan">
+  <option value="">Angkatan</option>
+  <option>X</option><option>XI</option><option>XII</option>
+ </select>
+
+ <select id="kelas">
+  <option value="">Kelas</option>
+  <option>1</option><option>2</option><option>3</option>
+  <option>4</option><option>5</option><option>6</option>
+ </select>
+
+ <select id="status">
+  <option value="Hadir">Hadir 😊</option>
+  <option value="Izin">Izin 📝</option>
+  <option value="Sakit">Sakit 🤒</option>
+ </select>
+
+ <button onclick="kirim()">Kirim Absensi 💌</button>
+</div>
+</section>
+
+<!-- SLIDE LOGIN -->
+<section class="slide">
+<div class="card">
+ <div class="chibi wave">🔐🐱</div>
+ <h2>Login Admin</h2>
+ <input id="pin" placeholder="PIN Hari Ini">
+ <button onclick="login()">Masuk</button>
+</div>
+</section>
+
+<!-- SLIDE ADMIN -->
+<section class="slide">
+<div class="card">
+ <div class="chibi jump">📋🐰</div>
+ <h2>Data Absensi</h2>
+
+ <input type="date" id="filter" onchange="tampil()">
+
+ <div class="rekap">
+  <div class="box">😊 Hadir: <b id="rHadir">0</b></div>
+  <div class="box">📝 Izin: <b id="rIzin">0</b></div>
+  <div class="box">🤒 Sakit: <b id="rSakit">0</b></div>
+ </div>
+
+ <table>
+  <thead>
+   <tr>
+    <th>No</th><th>Nama</th><th>Angkatan</th>
+    <th>Kelas</th><th>Status</th><th>Waktu</th>
+   </tr>
+  </thead>
+  <tbody id="tb"></tbody>
+ </table>
+
+ <button style="background:#d9534f" onclick="hapus()">Hapus Semua Data 🗑️</button>
+</div>
+</section>
+
+<script>
+function kirim(){
+ if(!nama.value||!angkatan.value||!kelas.value){
+  alert("Lengkapi dulu ya ✨");return;
+ }
+ let data=JSON.parse(localStorage.getItem("absen"))||[];
+ data.push({
+  nama:nama.value,
+  angkatan:angkatan.value,
+  kelas:kelas.value,
+  status:status.value,
+  waktu:new Date()
+ });
+ localStorage.setItem("absen",JSON.stringify(data));
+
+ nama.value="";
+ angkatan.value="";
+ kelas.value="";
+ status.value="Hadir";
+ alert("Absensi terkirim 💖");
+}
+
+function pinHariIni(){
+ let d=new Date();
+ return String(d.getDate()).padStart(2,"0")+
+        String(d.getMonth()+1).padStart(2,"0")+
+        d.getFullYear();
+}
+
+function login(){
+ if(pin.value===pinHariIni()){
+  tampil();
+  alert("Login admin berhasil ✨");
+ }else{
+  alert("PIN salah 😿");
+ }
+}
+
+function tampil(){
+ let data=JSON.parse(localStorage.getItem("absen"))||[];
+ let f=filter.value;
+ tb.innerHTML="";
+ let h=i=s=0;
+
+ data.forEach((d,i2)=>{
+  let t=new Date(d.waktu);
+  let tgl=t.toISOString().slice(0,10);
+  if(f && f!==tgl) return;
+
+  if(d.status==="Hadir") h++;
+  if(d.status==="Izin") i++;
+  if(d.status==="Sakit") s++;
+
+  tb.innerHTML+=`
+  <tr>
+   <td>${i2+1}</td>
+   <td>🐰 ${d.nama}</td>
+   <td>${d.angkatan}</td>
+   <td>${d.kelas}</td>
+   <td>${d.status}</td>
+   <td>${t.toLocaleString()}</td>
+  </tr>`;
+ });
+
+ rHadir.innerText=h;
+ rIzin.innerText=i;
+ rSakit.innerText=s;
+}
+
+function hapus(){
+ if(confirm("Hapus semua data absensi?")){
+  localStorage.removeItem("absen");
+  tb.innerHTML="";
+  rHadir.innerText=rIzin.innerText=rSakit.innerText=0;
+ }
+}
+</script>
+
+</body>
+</html>
